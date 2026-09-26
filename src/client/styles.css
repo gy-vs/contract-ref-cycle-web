@@ -29,6 +29,29 @@ textarea { width: 100%; min-height: 420px; resize: vertical; padding: 12px; bord
 .event { padding: 10px 0; border-bottom: 1px solid #dde3df; }
 .event strong { display: block; margin-bottom: 4px; }
 .pill { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border-radius: 999px; color: #285347; background: #dcece6; font-size: 12px; }
+.stats { display: flex; align-items: center; gap: 6px; margin: 8px 0; color: #4b655c; font-size: 12px; }
+.issues { display: flex; flex-direction: column; gap: 6px; margin: 10px 0 14px; }
+.issues-empty { color: #5b7269; font-size: 13px; padding: 8px 0; }
+.issue { border: 1px solid #d8ded9; border-radius: 6px; background: #fff; overflow: hidden; }
+.issue-danger { border-color: #d9b3ac; }
+.issue-warning { border-color: #e0c99a; }
+.issue-head { display: flex; align-items: center; gap: 6px; width: 100%; padding: 7px 9px; border: 0; background: transparent; color: #27332e; text-align: left; }
+.issue-danger .issue-head { color: #8a3427; }
+.issue-warning .issue-head { color: #8a6216; }
+.issue-code { font-weight: 600; font-size: 13px; }
+.issue-instance { margin-left: auto; font-size: 12px; color: #5b7269; }
+.issue-body { padding: 2px 12px 10px 30px; border-top: 1px dashed #e2e7e4; }
+.issue-body p { margin: 8px 0; font-size: 13px; color: #3c4a44; }
+.issue-body dl { display: grid; grid-template-columns: 84px 1fr; gap: 4px 10px; margin: 0; font-size: 12px; }
+.issue-body dt { color: #75837c; }
+.issue-body dd { margin: 0; min-width: 0; }
+.chain { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.chain-arrow { color: #93a09a; margin-right: 2px; }
+.chain-cycle { color: #b3352a; font-weight: 600; background: #fbecea; border-radius: 4px; padding: 0 4px; }
+.status-loading { color: #7a6816; }
+.status-ok { color: #2c6b55; }
+.status-warning { color: #8a6216; }
+.status-error { color: #a23a2c; }
 pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; line-height: 1.5; }
 @media (max-width: 900px) {
   .workspace { grid-template-columns: 1fr; }
