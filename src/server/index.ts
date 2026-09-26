@@ -1,5 +1,6 @@
 import express from 'express';
 import {fileURLToPath} from 'node:url';
+import {resolveRefs, type SchemaFetcher} from './ref-resolver';
 
 type Contract = {id: string; name: string; revision: number; schema: Record<string, unknown>};
 const contracts: Contract[] = [
@@ -7,18 +8,21 @@ const contracts: Contract[] = [
   {id: 'profiles', name: 'Profile event', revision: 7, schema: {type: 'object', properties: {name: {type: 'string'}, locale: {type: 'string'}}}},
 ];
 
-const visited = new Set<string>();
-function resolveRefs(value: unknown, path = '#'): unknown {
-  if (!value || typeof value !== 'object') return value;
-  const record = value as Record<string, unknown>;
-  if (typeof record.$ref === 'string') {
-    if (visited.has(record.$ref)) throw new Error(`Circular reference at ${path}`);
-    visited.add(record.$ref);
-  }
-  return Object.fromEntries(Object.entries(record).map(([key, child]) => [key, resolveRefs(child, `${path}/${key}`)]));
+async function defaultRemoteFetcher(uri: string): Promise<unknown> {
+  const response = await fetch(uri, {
+    signal: AbortSignal.timeout(5000),
+    headers: {accept: 'application/json, application/schema+json'},
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json() as Promise<unknown>;
 }
 
-export function createApp() {
+export interface CreateAppOptions {
+  fetcher?: SchemaFetcher;
+}
+
+export function createApp(options: CreateAppOptions = {}) {
+  const fetcher = options.fetcher ?? defaultRemoteFetcher;
   const app = express();
   app.use(express.json({limit: '1mb'}));
   app.get('/api/bootstrap', (_req, res) => res.json({kind: 'contract', count: contracts.length}));
@@ -32,10 +36,12 @@ export function createApp() {
     const delay = req.params.id === 'orders' ? 240 : 30;
     await new Promise(resolve => setTimeout(resolve, delay));
     try {
-      const schema = resolveRefs(req.body.schema);
-      res.json({contractId: req.params.id, valid: true, schema});
+      const result = await resolveRefs(req.body?.schema ?? {}, {fetcher});
+      const payload = {contractId: req.params.id, valid: result.errors.length === 0, schema: result.schema, errors: result.errors, stats: result.stats};
+      if (payload.valid) return res.json(payload);
+      return res.status(422).json(payload);
     } catch (error) {
-      res.status(422).json({contractId: req.params.id, valid: false, error: String(error)});
+      return res.status(500).json({contractId: req.params.id, error: 'resolution_failed', message: String(error)});
     }
   });
   app.put('/api/contracts/:id', (req, res) => {
